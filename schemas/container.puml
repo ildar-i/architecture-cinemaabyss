@@ -1,0 +1,43 @@
+@startuml
+title KinoBezdna Context Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Customer", "A user of the cinema service")
+
+System_Ext(RecommenderSystem, "Recommender System", "Recommender System")
+System_Ext(s3, "s3", "store movies contents")
+
+Container_Boundary(KinoBezdnaSystem, "KinoBezdna System") {
+  Container(ApiGateway, "Api Gateway", "Golang", "Handles user interactions. Manages user calls, control which API service call and how")
+  Container(MonolithService, "Monolith Service", "Golang API", "Manages customer auth, get JWT tokens to make API calls")
+  Container(UserService, "Auth Service", "Golang API", "Manages customer auth, get JWT tokens to make API calls")
+  Container(MoviesService, "Movies Service", "Golang API", "(genres, actors, ratings)")
+  Container(EventsService, "Events Service", "Golang API", "control communication")
+  Container(Kafka, "Kafka Service", "Kafka", "Message Broker")
+  Container(Database, "Database", "PostgreSQL", "Stores users,auth, meta, subscriptions, discounts data")
+  Container(RabbitMQ, "RabbitMQ", "RabbitMQ", "Message Broker")
+}
+
+Rel(user, ApiGateway, "Uses the system")
+
+Rel(ApiGateway,MonolithService,"call service enpdoint")
+Rel(ApiGateway,EventsService,"call service enpdoint")
+
+Rel(MoviesService,RabbitMQ,"produce and consume messages")
+Rel(MoviesService,s3,"get movie contents")
+Rel(MoviesService,Kafka,"produce and consume messages")
+Rel(UserService,Kafka,"produce and consume messages")
+Rel(EventsService,Kafka,"produce and consume messages")
+Rel(MonolithService,s3,"get movie contents")
+Rel(MonolithService,RabbitMQ,"produce and consume messages")
+Rel(RabbitMQ,RecommenderSystem,"receiving recommendation data")
+
+Rel(MonolithService,Database,"read/write")
+Rel(UserService,Database,"read/write")
+Rel(MoviesService,Database,"read/write")
+
+
+@enduml
