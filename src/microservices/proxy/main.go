@@ -37,7 +37,7 @@ func main() {
 	cfg.CinemaMetadata.Timeout = 30
 	cfg.CinemaMetadata.BaseURL = "http://movies-service:8081"
 
-	cfg.Server.Address = ":8080"
+	cfg.Server.Address = ":8000"
 	cfg.Server.GradualMigration = true
 
 	cfg.Monolith.Timeout = 30

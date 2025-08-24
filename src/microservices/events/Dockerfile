@@ -1,32 +1,29 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod ./
-#COPY config.yaml ./
+# Копируем файлы с зависимостями
+COPY go.mod go.sum ./
 
-# Download all dependencies
+# Загружаем зависимости
 RUN go mod download
 
-# Copy the source code
+# Копируем исходный код
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o event-service .
+# Собираем приложение
+RUN go build -o events ./cmd/main.go
 
-# Use a smaller image for the final application
-FROM alpine:latest  
+# Финальный образ
+FROM alpine:3.14
 
-RUN apk --no-cache add ca-certificates
+WORKDIR /app
 
-WORKDIR /root/
+# Копируем бинарный файл из билдера
+COPY --from=builder /app/events .
 
-# Copy the binary from builder
-COPY --from=builder /app/event-service .
+# Открываем порт
+EXPOSE 8082
 
-# Expose the application port
-EXPOSE 8081
-
-# Command to run the executable
-CMD ["./event-service"]
+# Запускаем приложение
+CMD ["./events"]

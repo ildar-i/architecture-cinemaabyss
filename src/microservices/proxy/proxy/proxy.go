@@ -39,8 +39,9 @@ func (p *ProxyHandler) ProxyMoviesRequest(useNewService bool, w http.ResponseWri
 	// Определяем, куда направить запрос
 	if useNewService {
 		// Новый сервис метаданных фильмов
-		targetPath := strings.TrimPrefix(r.URL.Path, "/api/monolith/movies")
-		targetURL = p.config.CinemaMetadata.BaseURL + "/api/cinema-metadata" + targetPath
+		//todo fix it
+		targetPath := strings.TrimPrefix(r.URL.Path, "/api/movies")
+		targetURL = p.config.CinemaMetadata.BaseURL + "/api/movies" + targetPath
 		client = p.newService
 
 		log.Printf("Routing to new service: %s", targetURL)
