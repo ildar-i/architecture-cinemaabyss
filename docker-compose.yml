@@ -24,7 +24,6 @@ services:
 
   # ZooKeeper for Kafka
   zookeeper:
-    # platform: linux/amd64
     image: 'bitnami/zookeeper:latest'
     container_name: cinemaabyss-zookeeper
     ports:
@@ -34,54 +33,26 @@ services:
     environment:
       ALLOW_ANONYMOUS_LOGIN: yes
 
-  # Kafka
-#  kafka:
-#    image: wurstmeister/kafka:2.13-2.7.0
-#    container_name: cinemaabyss-kafka
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "9092:9092"
-#    expose:
-#      - "9093"
-#    environment:
-#      KAFKA_BROKER_ID: 1
-##      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,LISTENER_INTERNAL://kafka:9092,LISTENER_EXTERNAL://localhost:9092,LISTENER_BOB://kafka:9092,LISTENER_FRED://localhost:9092
-#      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,LISTENER_BOB://kafka:9092,LISTENER_FRED://localhost:9092
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_CREATE_TOPICS: "movie-events:1:1,user-events:1:1,payment-events:1:1"
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#
-##      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_BOB:PLAINTEXT,LISTENER_FRED:PLAINTEXT,LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
-##      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
-#      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_BOB
-#
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#    networks:
-#      - cinemaabyss-network
-
+ # Kafka
   kafka:
     image: 'bitnami/kafka:3.1'
     platform: linux/amd64
-    restart: on-failure:3
-    container_name: kafka
+    restart: always
+    container_name: cinemaabyss-kafka
+    hostname: kafka
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "movie-events:1:1,user-events:1:1,payment-events:1:1"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       ALLOW_PLAINTEXT_LISTENER: yes
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
-      KAFKA_ZOOKEEPER_PROTOCOL: PLAINTEXT
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -106,7 +77,7 @@ services:
   # Movies Microservice
   movies-service:
     build:
-      context: ./src/microservices/movies
+      context: src/microservices/movies-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
     depends_on:
@@ -122,7 +93,7 @@ services:
   # Events Microservice
   events-service:
     build:
-      context: ./src/microservices/events
+      context: src/microservices/events-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-events-service
     depends_on:
@@ -133,26 +104,17 @@ services:
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
-#      KAFKA_HOST: localhost
-#      KAFKA_BROKERS: localhost:9092
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092,INTERNAL://kafka:9094
-#      KAFKA_LISTENERS: PLAINTEXT://:9092,INTERNAL://:9094
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_CREATE_TOPICS: "movie-events:1:1,user-events:1:1,payment-events:1:1"
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
-#      ALLOW_PLAINTEXT_LISTENER: yes
-      #      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      #      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092
+      KAFKA_TOPIC_USER: user-events
+      KAFKA_TOPIC_PAYMENT: payment-events
+      KAFKA_TOPIC_MOVIE: movie-events
+      KAFKA_CONSUMER_GROUP_ID: events-service-group
     networks:
       - cinemaabyss-network
 
   # Proxy Service (API Gateway)
   proxy-service:
     build:
-      context: ./src/microservices/proxy
+      context: src/microservices/proxy-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-proxy-service
     depends_on:

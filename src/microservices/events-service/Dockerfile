@@ -19,6 +19,9 @@ FROM alpine:3.14
 
 WORKDIR /app
 
+# Устанавливаем зависимости для работы с сетью
+RUN apk add --no-cache ca-certificates tzdata iputils
+
 # Копируем бинарный файл из билдера
 COPY --from=builder /app/events .
 

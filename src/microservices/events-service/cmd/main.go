@@ -32,6 +32,8 @@ func main() {
 
 	log.Info("Configuration loaded successfully")
 
+	time.Sleep(3 * time.Second)
+
 	// Инициализация Kafka продюсера
 	producer, err := kafka.NewProducer(cfg.Kafka.Brokers, log)
 	if err != nil {

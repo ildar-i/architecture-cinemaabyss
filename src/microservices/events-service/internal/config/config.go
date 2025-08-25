@@ -31,7 +31,7 @@ func LoadConfig() (*Config, error) {
 	// Настройки Kafka
 	kafkaBrokers := getEnv("KAFKA_BROKERS", "kafka:9092")
 	config.Kafka.Brokers = strings.Split(kafkaBrokers, ",")
-	config.Kafka.GroupID = getEnv("KAFKA_CONSUMER_GROUP_ID", "events-group")
+	config.Kafka.GroupID = getEnv("KAFKA_CONSUMER_GROUP_ID", "events-service-group")
 
 	// Топики Kafka
 	config.Kafka.Topics.User = getEnv("KAFKA_TOPIC_USER", "user-events")
