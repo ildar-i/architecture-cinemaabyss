@@ -50,7 +50,7 @@ func SetupRouter(
 	events.POST("/movie", eventHandlers.HandleMovieEvent)
 
 	// Проверка работоспособности
-	e.GET("/health", healthHandler.HandleHealthCheck)
+	events.GET("/health", healthHandler.HandleHealthCheck)
 
 	logger.Info("Router configured successfully")
 }

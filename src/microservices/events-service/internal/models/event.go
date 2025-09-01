@@ -32,10 +32,9 @@ func (e BaseEvent) GetTimestamp() time.Time {
 // UserEvent представляет событие пользователя
 type UserEvent struct {
 	BaseEvent
-	UserID    string `json:"user_id"`
-	Action    string `json:"action"`
-	UserName  string `json:"user_name,omitempty"`
-	UserEmail string `json:"user_email,omitempty"`
+	UserID   string `json:"user_id"`
+	Action   string `json:"action"`
+	UserName string `json:"user_name,omitempty"`
 }
 
 // GetType возвращает тип события
@@ -51,12 +50,14 @@ func (e UserEvent) ToJSON() ([]byte, error) {
 // PaymentEvent представляет событие платежа
 type PaymentEvent struct {
 	BaseEvent
-	PaymentID     string  `json:"payment_id"`
-	UserID        string  `json:"user_id"`
-	Amount        float64 `json:"amount"`
-	Currency      string  `json:"currency"`
-	PaymentMethod string  `json:"payment_method"`
-	Status        string  `json:"status"`
+	PaymentID     string    `json:"payment_id"`
+	UserID        string    `json:"user_id"`
+	Amount        float64   `json:"amount"`
+	Currency      string    `json:"currency"`
+	PaymentMethod string    `json:"payment_method"`
+	Status        string    `json:"status"`
+	Timestamp     time.Time `json:"timestamp"`
+	MethodType    string    `json:"MethodType"`
 }
 
 // GetType возвращает тип события
@@ -72,11 +73,10 @@ func (e PaymentEvent) ToJSON() ([]byte, error) {
 // MovieEvent представляет событие фильма
 type MovieEvent struct {
 	BaseEvent
-	MovieID     string `json:"movie_id"`
-	Title       string `json:"title"`
-	Director    string `json:"director,omitempty"`
-	ReleaseYear int    `json:"release_year,omitempty"`
-	Action      string `json:"action"`
+	MovieID string `json:"movie_id"`
+	Title   string `json:"title,omitempty"`
+	UserId  int    `json:"user_id,omitempty"`
+	Action  string `json:"action,omitempty"`
 }
 
 // GetType возвращает тип события

@@ -64,6 +64,7 @@ services:
       context: ./src/monolith
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
+    restart: on-failure:3
     depends_on:
       - postgres
     ports:
@@ -80,6 +81,7 @@ services:
       context: src/microservices/movies-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
+    restart: on-failure:3
     depends_on:
       - postgres
     ports:
@@ -96,6 +98,7 @@ services:
       context: src/microservices/events-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-events-service
+    restart: on-failure:3
     depends_on:
       - postgres
       - kafka
@@ -117,6 +120,7 @@ services:
       context: src/microservices/proxy-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-proxy-service
+    restart: on-failure:3
     depends_on:
       - monolith
       - movies-service

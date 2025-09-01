@@ -5,6 +5,10 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_run:
+    workflows: ["Docker Build and Push"]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       environment:
@@ -24,7 +28,8 @@ jobs:
   api-tests:
     name: Run API Tests
     runs-on: ubuntu-latest
-    
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,14 +37,35 @@ jobs:
       - name: Set up Docker Compose
         run: |
           docker compose --version
-      
+
+      # Create .env file for docker-compose
+      - name: Create environment file
+        run: |
+          cat > .env << EOF
+          PROXY_PORT=8080
+          PROXY_PORTS=8080:8080
+          MONOLITH_URL=http://monolith:8000
+          MOVIES_SERVICE_URL=http://movies-service:8081
+          EVENTS_SERVICE_URL=http://events-service:8082
+          GRADUAL_MIGRATION=true
+          MOVIES_MIGRATION_PERCENT=100
+          EOF
+
+      - name: Pull Docker images if available
+        run: |
+          docker compose pull || echo "Some images may not be available, will build locally"
+
       - name: Start services with Docker Compose
         run: |
           docker compose up -d
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
           sleep 120
-      
+
+          # Check service status
+          docker compose ps
+          docker compose logs --tail=50
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -50,22 +76,23 @@ jobs:
       - name: Install Newman and dependencies
         working-directory: tests/postman
         run: npm install
-      
+
       - name: Run API tests
         working-directory: tests/postman
         run: |
-
-          docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 15
           # Build the Docker image
           docker build -t cinemaabyss-api-tests .
-          
+
           # Run the tests in Docker
           docker run --network=cinemaabyss-network -v "$(pwd)/reports:/app/reports" cinemaabyss-api-tests
-        
-      
+
+      - name: Archive test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-test-results
+          path: tests/postman/reports/
+
       - name: Stop services
         if: always()
         run: docker compose down

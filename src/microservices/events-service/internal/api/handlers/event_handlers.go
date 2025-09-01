@@ -8,6 +8,7 @@ import (
 	"events/internal/models"
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,10 +45,10 @@ func NewEventHandlers(
 
 // UserEventRequest представляет запрос на создание события пользователя
 type UserEventRequest struct {
-	UserID    string `json:"user_id,omitempty"`
-	Action    string `json:"action" validate:"required"`
-	UserName  string `json:"user_name,omitempty"`
-	UserEmail string `json:"user_email,omitempty"`
+	UserId    int    `json:"user_id"`
+	Username  string `json:"username"`
+	Action    string `json:"action"`
+	Timestamp string `json:"timestamp"`
 }
 
 // HandleUserEvent обрабатывает запросы на создание события пользователя
@@ -58,25 +59,15 @@ func (h *EventHandlers) HandleUserEvent(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 	}
 
-	if req.Action == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Action is required"})
-	}
-
-	// Если UserID не указан, генерируем его
-	if req.UserID == "" {
-		req.UserID = uuid.New().String()
-	}
-
 	// Создаем событие
 	event := models.UserEvent{
 		BaseEvent: models.BaseEvent{
 			ID:        uuid.New().String(),
 			Timestamp: time.Now(),
 		},
-		UserID:    req.UserID,
-		Action:    req.Action,
-		UserName:  req.UserName,
-		UserEmail: req.UserEmail,
+		UserID:   strconv.Itoa(req.UserId),
+		Action:   req.Action,
+		UserName: req.Username,
 	}
 
 	// Сериализуем событие в JSON
@@ -101,38 +92,29 @@ func (h *EventHandlers) HandleUserEvent(c echo.Context) error {
 	}
 
 	// Ожидаем подтверждения получения события консьюмером
-	receivedEvent, err := h.userConsumer.WaitForEvent(event.ID, 5*time.Second)
+	_, err = h.userConsumer.WaitForEvent(event.ID, 5*time.Second)
 	if err != nil {
 		h.logger.Error("Error waiting for event confirmation: " + err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
 	}
 
-	// Формируем ответ
-	response := map[string]interface{}{
-		"status":  "success",
-		"message": "User event created and consumed",
-		"event": map[string]interface{}{
-			"id":            event.ID,
-			"user_id":       req.UserID,
-			"action":        req.Action,
-			"timestamp":     event.Timestamp,
-			"received":      receivedEvent != nil,
-			"event_data":    string(eventJSON),
-			"recent_events": h.userConsumer.GetRecentEvents(5),
-		},
+	type Out struct {
+		Status string `json:"status"`
 	}
 
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusCreated, Out{
+		Status: "success",
+	})
 }
 
 // PaymentEventRequest представляет запрос на создание события платежа
 type PaymentEventRequest struct {
-	PaymentID     string  `json:"payment_id,omitempty"`
-	UserID        string  `json:"user_id" validate:"required"`
-	Amount        float64 `json:"amount" validate:"required,gt=0"`
-	Currency      string  `json:"currency" validate:"required"`
-	PaymentMethod string  `json:"payment_method,omitempty"`
-	Status        string  `json:"status" validate:"required"`
+	PaymentId  int       `json:"payment_id"`
+	UserId     int       `json:"user_id"`
+	Amount     float64   `json:"amount"`
+	Status     string    `json:"status"`
+	Timestamp  time.Time `json:"timestamp"`
+	MethodType string    `json:"method_type"`
 }
 
 // HandlePaymentEvent обрабатывает запросы на создание события платежа
@@ -143,27 +125,18 @@ func (h *EventHandlers) HandlePaymentEvent(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 	}
 
-	if req.UserID == "" || req.Amount <= 0 || req.Currency == "" || req.Status == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "UserID, Amount, Currency, and Status are required"})
-	}
-
-	// Если PaymentID не указан, генерируем его
-	if req.PaymentID == "" {
-		req.PaymentID = uuid.New().String()
-	}
-
 	// Создаем событие
 	event := models.PaymentEvent{
 		BaseEvent: models.BaseEvent{
 			ID:        uuid.New().String(),
 			Timestamp: time.Now(),
 		},
-		PaymentID:     req.PaymentID,
-		UserID:        req.UserID,
-		Amount:        req.Amount,
-		Currency:      req.Currency,
-		PaymentMethod: req.PaymentMethod,
-		Status:        req.Status,
+		PaymentID:  strconv.Itoa(req.PaymentId),
+		UserID:     strconv.Itoa(req.UserId),
+		Amount:     req.Amount,
+		Timestamp:  req.Timestamp,
+		MethodType: req.MethodType,
+		Status:     req.Status,
 	}
 
 	// Сериализуем событие в JSON
@@ -188,40 +161,27 @@ func (h *EventHandlers) HandlePaymentEvent(c echo.Context) error {
 	}
 
 	// Ожидаем подтверждения получения события консьюмером
-	receivedEvent, err := h.paymentConsumer.WaitForEvent(event.ID, 5*time.Second)
+	_, err = h.paymentConsumer.WaitForEvent(event.ID, 5*time.Second)
 	if err != nil {
 		h.logger.Error("Error waiting for event confirmation: " + err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
 	}
 
-	// Формируем ответ
-	response := map[string]interface{}{
-		"status":  "success",
-		"message": "Payment event created and consumed",
-		"event": map[string]interface{}{
-			"id":            event.ID,
-			"payment_id":    req.PaymentID,
-			"user_id":       req.UserID,
-			"amount":        req.Amount,
-			"currency":      req.Currency,
-			"status":        req.Status,
-			"timestamp":     event.Timestamp,
-			"received":      receivedEvent != nil,
-			"event_data":    string(eventJSON),
-			"recent_events": h.paymentConsumer.GetRecentEvents(5),
-		},
+	type Out struct {
+		Status string `json:"status"`
 	}
 
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusCreated, Out{
+		Status: "success",
+	})
 }
 
 // MovieEventRequest представляет запрос на создание события фильма
 type MovieEventRequest struct {
-	MovieID     string `json:"movie_id,omitempty"`
-	Title       string `json:"title" validate:"required"`
-	Director    string `json:"director,omitempty"`
-	ReleaseYear int    `json:"release_year,omitempty"`
-	Action      string `json:"action" validate:"required"`
+	MovieId int    `json:"movie_id"`
+	Title   string `json:"title"`
+	Action  string `json:"action"`
+	UserId  int    `json:"user_id"`
 }
 
 // HandleMovieEvent обрабатывает запросы на создание события фильма
@@ -232,26 +192,16 @@ func (h *EventHandlers) HandleMovieEvent(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request format"})
 	}
 
-	if req.Title == "" || req.Action == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Title and Action are required"})
-	}
-
-	// Если MovieID не указан, генерируем его
-	if req.MovieID == "" {
-		req.MovieID = uuid.New().String()
-	}
-
 	// Создаем событие
 	event := models.MovieEvent{
 		BaseEvent: models.BaseEvent{
 			ID:        uuid.New().String(),
 			Timestamp: time.Now(),
 		},
-		MovieID:     req.MovieID,
-		Title:       req.Title,
-		Director:    req.Director,
-		ReleaseYear: req.ReleaseYear,
-		Action:      req.Action,
+		MovieID: strconv.Itoa(req.MovieId),
+		Title:   req.Title,
+		UserId:  req.UserId,
+		Action:  req.Action,
 	}
 
 	// Сериализуем событие в JSON
@@ -276,7 +226,7 @@ func (h *EventHandlers) HandleMovieEvent(c echo.Context) error {
 	}
 
 	// Ожидаем подтверждения получения события консьюмером
-	receivedEvent, err := h.movieConsumer.WaitForEvent(event.ID, 5*time.Second)
+	_, err = h.movieConsumer.WaitForEvent(event.ID, 5*time.Second)
 	if err != nil {
 		h.logger.Error("Error waiting for event confirmation: " + err.Error())
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
@@ -288,27 +238,20 @@ func (h *EventHandlers) HandleMovieEvent(c echo.Context) error {
 
 	for id, eventData := range recentEvents {
 		var eventObj map[string]interface{}
-		json.Unmarshal(eventData, &eventObj)
+		err := json.Unmarshal(eventData, &eventObj)
+		if err != nil {
+			h.logger.Error("HandleMovieEvent json.Unmarshal: " + err.Error())
+
+			return err
+		}
 		prettyRecentEvents[id] = eventObj
 	}
 
-	// Формируем ответ
-	response := map[string]interface{}{
-		"status":  "success",
-		"message": "Movie event created and consumed",
-		"event": map[string]interface{}{
-			"id":            event.ID,
-			"movie_id":      req.MovieID,
-			"title":         req.Title,
-			"director":      req.Director,
-			"release_year":  req.ReleaseYear,
-			"action":        req.Action,
-			"timestamp":     event.Timestamp,
-			"received":      receivedEvent != nil,
-			"event_data":    string(eventJSON),
-			"recent_events": prettyRecentEvents,
-		},
+	type Out struct {
+		Status string `json:"status"`
 	}
 
-	return c.JSON(http.StatusCreated, response)
+	return c.JSON(http.StatusCreated, Out{
+		Status: "success",
+	})
 }

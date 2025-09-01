@@ -22,10 +22,8 @@ func NewHealthHandler(logger *logger.Logger) *HealthHandler {
 func (h *HealthHandler) HandleHealthCheck(c echo.Context) error {
 	h.logger.Info("Health check requested")
 
-	response := map[string]string{
-		"status":  "ok",
-		"service": "events",
-		"version": "1.0.0",
+	response := map[string]bool{
+		"status": true,
 	}
 
 	return c.JSON(http.StatusOK, response)
