@@ -78,7 +78,7 @@
 ```yaml
 on:
   push:
-    branches: [ main ]
+    branches: [ cinema ]
     paths:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'

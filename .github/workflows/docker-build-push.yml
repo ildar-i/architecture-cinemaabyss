@@ -8,7 +8,7 @@ on:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ cinema ]
     paths:
       - 'src/**'
       - '.github/workflows/docker-build-push.yml'

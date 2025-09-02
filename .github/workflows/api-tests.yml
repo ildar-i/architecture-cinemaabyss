@@ -2,9 +2,9 @@ name: API Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, cinema, master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, cinema , master ]
   workflow_run:
     workflows: ["Docker Build and Push"]
     types:
