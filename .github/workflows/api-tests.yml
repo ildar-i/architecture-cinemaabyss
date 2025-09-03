@@ -24,8 +24,8 @@ jobs:
       - name: Create environment file
         run: |
           cat > .env << EOF
-          PROXY_PORT=8080
-          PROXY_PORTS=8080:8080
+          PROXY_PORT=8000
+          PROXY_PORTS=8000:8000
           MONOLITH_URL=http://monolith:8000
           MOVIES_SERVICE_URL=http://movies-service:8081
           EVENTS_SERVICE_URL=http://events-service:8082
