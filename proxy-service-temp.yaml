@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: proxy-service
-          image: ghcr.io/ildar-i/architecture-cinemaabyss/proxy-service:latest
+          image: nginx:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -61,12 +61,14 @@ spec:
               cpu: "100m"
               memory: "128Mi"
           readinessProbe:
+            # может /health
             httpGet:
               path: /api/proxy/health
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
+            # может /health
             httpGet:
               path: /api/proxy/health
               port: 8000
@@ -85,6 +87,7 @@ spec:
   selector:
     app: proxy-service
   ports:
+    # может port: 8000
     - port: 80
       targetPort: 8000
   type: ClusterIP
