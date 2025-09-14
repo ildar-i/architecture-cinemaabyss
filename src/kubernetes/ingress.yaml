@@ -4,9 +4,11 @@ metadata:
   name: cinemaabyss-ingress
   namespace: cinemaabyss
   annotations:
-    kubernetes.io/ingress.class: "nginx"
+    # Удаляем устаревшую аннотацию и заменяем её на spec.ingressClassName
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
+  # Добавляем ingressClassName вместо аннотации
+  ingressClassName: nginx
   rules:
     - host: cinemaabyss.example.com
       http:
