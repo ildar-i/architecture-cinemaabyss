@@ -62,7 +62,7 @@ spec:
               memory: "128Mi"
           readinessProbe:
             httpGet:
-              path: /api/proxy/health
+              path: /health
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
