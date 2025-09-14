@@ -15,22 +15,6 @@ import (
 )
 
 func main() {
-	// Парсим флаги запуска
-	//configPath := flag.String("config", "./app/config.yaml", "Path to configuration file")
-	//flag.Parse()
-
-	// Загружаем конфигурацию
-	//envFile, _ := godotenv.Read(".env")
-	//cfg, err := config.Load("config.yaml")
-	//if err != nil {
-	//	log.Fatalf("Failed to load configuration: %v", err)
-	//}
-
-	//yamlFile, err := os.ReadFile("config.yaml")
-	//if err != nil {
-	//	log.Printf("yamlFile.Get err   #%v ", err)
-	//}
-
 	cfg := &config.Config{}
 	cfg.Features.MoviesFeatureFlag = 0.5
 
