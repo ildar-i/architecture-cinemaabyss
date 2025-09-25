@@ -37,22 +37,6 @@ spec:
               value: "http://movies-service:8081"
             - name: EVENTS_SERVICE_URL
               value: "http://events-service:8082"
-          # может и не нужен
-#          envFrom:
-#            - configMapRef:
-#                name: cinemaabyss-config
-#            - secretRef:
-#                name: cinemaabyss-secrets
-#            - name: GRADUAL_MIGRATION
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: cinemaabyss-config
-#                  key: GRADUAL_MIGRATION
-#            - name: MOVIES_MIGRATION_PERCENT
-#              valueFrom:
-#                configMapKeyRef:
-#                  name: cinemaabyss-config
-#                  key: MOVIES_MIGRATION_PERCENT
           resources:
             limits:
               cpu: "300m"
