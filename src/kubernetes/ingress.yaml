@@ -5,36 +5,48 @@ metadata:
   namespace: cinemaabyss
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+    nginx.ingress.kubernetes.io/proxy-buffers: "4 256k"
 spec:
-  ingressClassName: nginx
+  ingressClassName: nginx  # ← ЗАМЕНА устаревшей аннотации
   rules:
     - host: cinemaabyss.example.com
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          # API Gateway (Proxy Service) - основной entry point
+          - path: /()(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: proxy-service
                 port:
                   number: 8000
-          - path: /api/events
-            pathType: Prefix
+          
+          # Прямой доступ к микросервису событий для тестирования
+          - path: /events-service(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: events-service
                 port:
                   number: 8082
-          - path: /api/movies
-            pathType: Prefix
+          
+          # Прямой доступ к микросервису фильмов для тестирования
+          - path: /movies-service(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: movies-service
                 port:
                   number: 8081
+          
+          # Прямой доступ к монолиту для тестирования
+          - path: /monolith(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: monolith
+                port:
+                  number: 8080
