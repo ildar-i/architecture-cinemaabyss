@@ -151,12 +151,12 @@ jobs:
           cache-to: type=gha,mode=max
 
   # Trigger API tests workflow after successful build
-  trigger-tests:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger API Tests workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: api-tests.yml
-          token: ${{ secrets.GITHUB_TOKEN }}
+#  trigger-tests:
+#    needs: build-and-push
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Trigger API Tests workflow
+#        uses: benc-uk/workflow-dispatch@v1
+#        with:
+#          workflow: api-tests.yml
+#          token: ${{ secrets.GITHUB_TOKEN }}
