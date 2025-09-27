@@ -275,9 +275,12 @@ cat .docker/config.json | base64
   Часть тестов с health-чек упадет, но создание событий отработает.
   Откройте логи event-service и сделайте скриншот обработки событий
 
+![Screenshot 2025-09-28 at 00.03.23.png](Screenshot%202025-09-28%20at%2000.03.23.png)
+
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+![Screenshot 2025-09-28 at 00.08.17.png](Screenshot%202025-09-28%20at%2000.08.17.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -352,6 +355,10 @@ minikube tunnel
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+![Screenshot 2025-09-28 at 01.58.10.png](Screenshot%202025-09-28%20at%2001.58.10.png)
+
+![Screenshot 2025-09-28 at 01.57.21.png](Screenshot%202025-09-28%20at%2001.57.21.png)
 
 ## Удаляем все
 
