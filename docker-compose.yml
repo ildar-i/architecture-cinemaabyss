@@ -24,7 +24,7 @@ services:
 
   # ZooKeeper for Kafka
   zookeeper:
-    image: 'bitnami/zookeeper:latest'
+    image: 'zookeeper:latest'
     container_name: cinemaabyss-zookeeper
     ports:
       - "2181:2181"
@@ -35,7 +35,7 @@ services:
 
  # Kafka
   kafka:
-    image: 'bitnami/kafka:3.1'
+    image: 'bitnamilegacy/kafka:3.1.0'
 #    platform: linux/amd64
     restart: always
     container_name: cinemaabyss-kafka
