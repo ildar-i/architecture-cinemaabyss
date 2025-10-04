@@ -24,7 +24,8 @@ services:
 
   # ZooKeeper for Kafka
   zookeeper:
-    image: 'zookeeper:latest'
+#    image: 'zookeeper:latest'
+    image: wurstmeister/zookeeper:latest
     container_name: cinemaabyss-zookeeper
     ports:
       - "2181:2181"
@@ -35,8 +36,7 @@ services:
 
  # Kafka
   kafka:
-    image: 'bitnamilegacy/kafka:3.1.0'
-#    platform: linux/amd64
+    image: wurstmeister/kafka:2.13-2.7.0
     restart: always
     container_name: cinemaabyss-kafka
     hostname: kafka
@@ -44,15 +44,12 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
-      - "29092:29092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "movie-events:1:1,user-events:1:1,payment-events:1:1"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -107,10 +104,10 @@ services:
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
-      KAFKA_TOPIC_USER: user-events
-      KAFKA_TOPIC_PAYMENT: payment-events
-      KAFKA_TOPIC_MOVIE: movie-events
-      KAFKA_CONSUMER_GROUP_ID: events-service-group
+#      KAFKA_TOPIC_USER: user-events
+#      KAFKA_TOPIC_PAYMENT: payment-events
+#      KAFKA_TOPIC_MOVIE: movie-events
+#      KAFKA_CONSUMER_GROUP_ID: events-service-group
     networks:
       - cinemaabyss-network
 
@@ -145,9 +142,9 @@ services:
       - kafka
     platform: linux/amd64
     ports:
-      - "8090:8080"
+      - "8090:8090"
     environment:
-      KAFKA_CLUSTERS_0_NAME: event_kafka_ui
+      KAFKA_CLUSTERS_0_NAME: cinemaabyss
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     networks:

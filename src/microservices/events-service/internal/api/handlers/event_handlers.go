@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"events/internal/kafka"
 	"events/internal/logger"
@@ -80,23 +81,23 @@ func (h *EventHandlers) HandleUserEvent(c echo.Context) error {
 	// Логируем событие
 	h.logger.LogEvent(event.GetType(), "PRODUCING", string(eventJSON))
 
-	// Отправляем событие в Kafka
-	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	//defer cancel()
+	//Отправляем событие в Kafka
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	//topic := "user-events"
-	//err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
-	//if err != nil {
-	//	h.logger.Error("Failed to produce event: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
-	//}
-	//
-	//// Ожидаем подтверждения получения события консьюмером
-	//_, err = h.userConsumer.WaitForEvent(event.ID, 5*time.Second)
-	//if err != nil {
-	//	h.logger.Error("Error waiting for event confirmation: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
-	//}
+	topic := "user-events"
+	err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
+	if err != nil {
+		h.logger.Error("Failed to produce event: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
+	}
+
+	// Ожидаем подтверждения получения события консьюмером
+	_, err = h.userConsumer.WaitForEvent(event.ID, 5*time.Second)
+	if err != nil {
+		h.logger.Error("Error waiting for event confirmation: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
+	}
 
 	type Out struct {
 		Status string `json:"status"`
@@ -150,22 +151,22 @@ func (h *EventHandlers) HandlePaymentEvent(c echo.Context) error {
 	h.logger.LogEvent(event.GetType(), "PRODUCING", string(eventJSON))
 
 	// Отправляем событие в Kafka
-	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	//defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	//topic := "payment-events"
-	//err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
-	//if err != nil {
-	//	h.logger.Error("Failed to produce event: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
-	//}
-	//
-	//// Ожидаем подтверждения получения события консьюмером
-	//_, err = h.paymentConsumer.WaitForEvent(event.ID, 5*time.Second)
-	//if err != nil {
-	//	h.logger.Error("Error waiting for event confirmation: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
-	//}
+	topic := "payment-events"
+	err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
+	if err != nil {
+		h.logger.Error("Failed to produce event: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
+	}
+
+	// Ожидаем подтверждения получения события консьюмером
+	_, err = h.paymentConsumer.WaitForEvent(event.ID, 5*time.Second)
+	if err != nil {
+		h.logger.Error("Error waiting for event confirmation: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
+	}
 
 	type Out struct {
 		Status string `json:"status"`
@@ -214,23 +215,23 @@ func (h *EventHandlers) HandleMovieEvent(c echo.Context) error {
 	// Логируем событие
 	h.logger.LogEvent(event.GetType(), "PRODUCING", string(eventJSON))
 
-	//// Отправляем событие в Kafka
-	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	//defer cancel()
-	//
-	//topic := "movie-events"
-	//err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
-	//if err != nil {
-	//	h.logger.Error("Failed to produce event: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
-	//}
-	//
-	//// Ожидаем подтверждения получения события консьюмером
-	//_, err = h.movieConsumer.WaitForEvent(event.ID, 5*time.Second)
-	//if err != nil {
-	//	h.logger.Error("Error waiting for event confirmation: " + err.Error())
-	//	return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
-	//}
+	// Отправляем событие в Kafka
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	topic := "movie-events"
+	err = h.producer.Produce(ctx, topic, []byte(event.ID), eventJSON, h.brokers)
+	if err != nil {
+		h.logger.Error("Failed to produce event: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to produce event"})
+	}
+
+	// Ожидаем подтверждения получения события консьюмером
+	_, err = h.movieConsumer.WaitForEvent(event.ID, 5*time.Second)
+	if err != nil {
+		h.logger.Error("Error waiting for event confirmation: " + err.Error())
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error waiting for event confirmation"})
+	}
 
 	// Преобразуем recent_events в более читаемый формат
 	recentEvents := h.movieConsumer.GetRecentEvents(5)

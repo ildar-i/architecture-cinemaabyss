@@ -6,6 +6,7 @@ import (
 	"events/internal/config"
 	"events/internal/kafka"
 	"events/internal/logger"
+
 	"github.com/labstack/echo/v4"
 
 	echomiddleware "github.com/labstack/echo/v4/middleware"
