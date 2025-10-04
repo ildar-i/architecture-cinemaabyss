@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"strconv"
+
 	//"flag"
 	"log"
 	"net/http"
@@ -16,7 +18,12 @@ import (
 
 func main() {
 	cfg := &config.Config{}
-	cfg.Features.MoviesFeatureFlag = 0.5
+
+	moviesFeatureFlag := os.Getenv("MOVIES_MIGRATION_PERCENT")
+	if moviesFeatureFlag == "" {
+		moviesFeatureFlag = "100"
+	}
+	cfg.Features.MoviesFeatureFlag, _ = strconv.Atoi(moviesFeatureFlag)
 
 	cfg.CinemaMetadata.Timeout = 30
 	cfg.CinemaMetadata.BaseURL = "http://movies-service:8081"

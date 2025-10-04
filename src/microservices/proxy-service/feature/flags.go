@@ -20,9 +20,9 @@ func Init() {
 
 // ShouldUseNewService определяет, нужно ли использовать новый сервис
 // на основе процента трафика, указанного в featureFlag (0.0 - 1.0)
-func ShouldUseNewService(featureFlag float64) bool {
-	if random == nil {
-		Init()
-	}
-	return random.Float64() <= featureFlag
+func ShouldUseNewService(featureFlag int) bool {
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	return rand.Intn(100)+1 <= featureFlag
 }

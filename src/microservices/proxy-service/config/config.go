@@ -18,7 +18,7 @@ type Config struct {
 	} `yaml:"cinemaMetadata"`
 
 	Features struct {
-		MoviesFeatureFlag float64 `yaml:"moviesFeatureFlag"` // 0.0-1.0 процент трафика на новый сервис
+		MoviesFeatureFlag int `yaml:"moviesFeatureFlag"` // 0.0-1.0 процент трафика на новый сервис
 	} `yaml:"features"`
 }
 

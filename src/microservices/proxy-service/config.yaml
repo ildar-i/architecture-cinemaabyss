@@ -11,5 +11,5 @@ cinemaMetadata:
   timeoutSeconds: 10
 
 features:
-  moviesFeatureFlag: 0.5  # 50% трафика на новый сервис
+  moviesFeatureFlag: 50  # 50% трафика на новый сервис
 
