@@ -166,21 +166,34 @@ func createMovie(w http.ResponseWriter, r *http.Request) {
 	tx, err := db.Begin()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
 	err = tx.QueryRow("INSERT INTO movies (title, description, rating) VALUES ($1, $2, $3) RETURNING id",
 		m.Title, m.Description, m.Rating).Scan(&m.ID)
 	if err != nil {
-		tx.Rollback()
+		err := tx.Rollback()
+		if err != nil {
+			log.Println(err)
+
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
 	for _, genre := range m.Genres {
 		_, err = tx.Exec("INSERT INTO movie_genres (movie_id, genre) VALUES ($1, $2)", m.ID, genre)
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				log.Println(err)
+
+				return
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -188,10 +201,17 @@ func createMovie(w http.ResponseWriter, r *http.Request) {
 
 	if err = tx.Commit(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(m)
+	err = json.NewEncoder(w).Encode(m)
+	if err != nil {
+		log.Println(err)
+
+		return
+	}
 }

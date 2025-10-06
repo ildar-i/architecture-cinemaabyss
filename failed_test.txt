@@ -1,0 +1,20 @@
+❏ Events Microservice
+↳ Health Check
+  GET http://127.0.0.1:8082/api/events/health [404 Not Found, 176B, 8ms]
+  1. Status code is 200
+  2. Status is true
+
+↳ Create Movie Event
+  POST http://127.0.0.1:8082/api/events/movie [404 Not Found, 176B, 7ms]
+  3. Status code is 201
+  4. Response has status success
+
+↳ Create User Event
+  POST http://127.0.0.1:8082/api/events/user [404 Not Found, 176B, 7ms]
+  5. Status code is 201
+  6. Response has status success
+
+↳ Create Payment Event
+  POST http://127.0.0.1:8082/api/events/payment [404 Not Found, 176B, 7ms]
+  7. Status code is 201
+  8. Response has status success

@@ -1,4 +1,4 @@
-version: '3.8'
+#version: '3.8'
 
 services:
   # PostgreSQL Database
@@ -24,17 +24,23 @@ services:
 
   # ZooKeeper for Kafka
   zookeeper:
+#    image: 'zookeeper:latest'
     image: wurstmeister/zookeeper:latest
     container_name: cinemaabyss-zookeeper
     ports:
       - "2181:2181"
     networks:
       - cinemaabyss-network
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
 
-  # Kafka
+ # Kafka
   kafka:
     image: wurstmeister/kafka:2.13-2.7.0
+#    image: 'bitnamilegacy/kafka:3.1.0'
+    restart: always
     container_name: cinemaabyss-kafka
+    hostname: kafka
     depends_on:
       - zookeeper
     ports:
@@ -56,6 +62,7 @@ services:
       context: ./src/monolith
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
+    restart: on-failure:3
     depends_on:
       - postgres
     ports:
@@ -69,9 +76,10 @@ services:
   # Movies Microservice
   movies-service:
     build:
-      context: ./src/microservices/movies
+      context: src/microservices/movies-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
+    restart: on-failure:3
     depends_on:
       - postgres
     ports:
@@ -85,9 +93,10 @@ services:
   # Events Microservice
   events-service:
     build:
-      context: ./src/microservices/events
+      context: src/microservices/events-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-events-service
+    restart: on-failure:3
     depends_on:
       - postgres
       - kafka
@@ -96,39 +105,45 @@ services:
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
+#      KAFKA_TOPIC_USER: user-events
+#      KAFKA_TOPIC_PAYMENT: payment-events
+#      KAFKA_TOPIC_MOVIE: movie-events
+#      KAFKA_CONSUMER_GROUP_ID: events-service-group
     networks:
       - cinemaabyss-network
 
   # Proxy Service (API Gateway)
   proxy-service:
     build:
-      context: ./src/microservices/proxy
+      context: src/microservices/proxy-service
       dockerfile: Dockerfile
     container_name: cinemaabyss-proxy-service
+    restart: on-failure:3
     depends_on:
       - monolith
       - movies-service
       - events-service
     ports:
-      - "8000:8000"
+      - ${PROXY_PORTS}
     environment:
-      PORT: 8000
-      MONOLITH_URL: http://monolith:8080
-      MOVIES_SERVICE_URL: http://movies-service:8081
-      EVENTS_SERVICE_URL: http://events-service:8082
-      GRADUAL_MIGRATION: "true"
-      MOVIES_MIGRATION_PERCENT: "50"
+      PORT: ${PROXY_PORT}
+      MONOLITH_URL: ${MONOLITH_URL}
+      MOVIES_SERVICE_URL: ${MOVIES_SERVICE_URL}
+      EVENTS_SERVICE_URL: ${EVENTS_SERVICE_URL}
+      GRADUAL_MIGRATION: ${GRADUAL_MIGRATION}
+      MOVIES_MIGRATION_PERCENT: ${MOVIES_MIGRATION_PERCENT}
     networks:
       - cinemaabyss-network
 
   # Kafka UI for monitoring Kafka
   kafka-ui:
-    image: provectuslabs/kafka-ui:latest
+    image: 'provectuslabs/kafka-ui:latest'
     container_name: cinemaabyss-kafka-ui
     depends_on:
       - kafka
+    platform: linux/amd64
     ports:
-      - "8090:8080"
+      - "8090:8090"
     environment:
       KAFKA_CLUSTERS_0_NAME: cinemaabyss
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
